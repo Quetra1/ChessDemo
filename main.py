@@ -33,6 +33,7 @@ def main():
     pg.display.update()
 
     # Game loop that handles events and updates
+    last_selection = []
     running = True
     while running:
         for event in pg.event.get():
@@ -50,19 +51,22 @@ def main():
                 selected_piece_colour = selected_piece[0]
 
                 #No piece is already selected
-                if game_state.selection == False:
-
+                if not last_selection:
                     #Check if the player is selecting their own pieces on their turn
                     #Set piece selection to true
                     if selected_piece_colour == "w" and game_state.current_turn == 0 or \
                        selected_piece_colour == "b" and game_state.current_turn == 1:
                         print("Piece selected")
-                        game_state.selection = True
+                        last_selection = selected_piece
                     elif selected_piece_colour == "-":
                         print("Nothing selected")
                 #Piece is already selected
                 else:
-                    pass
+                    #Selected same piece as the previous click, unselect the piece
+                    if last_selection == selected_piece:
+                        last_selection = []
+                        print("Unselected piece")
+                    
 
 # Creates the board
 def create_board(screen):
