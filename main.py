@@ -39,6 +39,22 @@ def main():
             # Close window if pressed
             if event.type == pg.QUIT:
                 running = False
+            # Event click
+            if event.type == pg.MOUSEBUTTONDOWN:
+                # Get mouse position and store as X/Y values that correspond to each square
+                # Retrieve piece selected from that position on the board
+                location = pg.mouse.get_pos()
+                square_y = location[0] // SQUARE_SIZE 
+                square_x = location[1] // SQUARE_SIZE
+                selected_piece = game_state.board[square_x][square_y]
+                selected_piece_colour = selected_piece[0]
+
+                if selected_piece_colour == "w":
+                    print("White selected")
+                elif selected_piece_colour == "b":
+                    print("Black selected")
+                elif selected_piece_colour == "-":
+                    print("Nothing selected")
 
 # Creates the board
 def create_board(screen):
