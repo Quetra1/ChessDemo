@@ -51,24 +51,23 @@ def main():
                 selected_piece = game_state.board[square_x][square_y]
                 selected_piece_colour = selected_piece[0]
 
-                #No piece is already selected
-                if not last_square:
-                    #Check if the player is selecting their own pieces on their turn
-                    #Set piece selection to true
-                    if selected_piece_colour == "w" and game_state.current_turn == 0 or \
+               
+                #Check if the player is selecting their own pieces on their turn
+                if selected_piece_colour == "w" and game_state.current_turn == 0 or \
                        selected_piece_colour == "b" and game_state.current_turn == 1:
-                        print("Piece selected")
-                        last_square = [square_x, square_y]
-                        print(last_square)
-                    elif selected_piece_colour == "-":
-                        print("Nothing selected")
-                #A Piece is already selected
-                else:
-                    #Selected same piece as the previous click, unselect the piece
+                    #If piece is already selected, unselect 
                     if last_square == selected_square:
                         last_square = []
                         selected_square = []
                         print("Unselected piece")
+                    #Otherwise select the new piece
+                    else:
+                        last_square = [square_x, square_y]
+                        print("Piece selected")
+                #No piece is selected
+                else:
+                    print("Nothing selected")
+                
                     
 
 # Creates the board
