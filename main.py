@@ -31,6 +31,7 @@ def main():
     # Game loop that handles events and updates
     last_square = []
     last_piece = []
+    valid_moves = []
     running = True
     while running:
         for event in pg.event.get():
@@ -51,11 +52,12 @@ def main():
                 #If no prior selection, check if new selection is valid
                 if not last_square:
                     #Check if the player is selecting their own pieces on their turn
-                    #Select the piece if so
+                    #Select the piece if so and generate an array of valid moves
                     if selected_piece_colour == game_state.current_turn:
-                        last_square = [square_x, square_y]
+                        last_square = selected_square
                         last_piece = selected_piece
                         print("Piece selected")
+                        valid_moves = game_state.generate_valid_moves(square_x, square_y, selected_piece, selected_piece_colour)
                     else:
                         print("Selection is invalid.")
                 #If same square is already selected, unselect 
@@ -66,10 +68,20 @@ def main():
                 #New square selected
                 elif last_square != selected_square:
                     #Check if move is valid, and then move
-                    print("Piece moved")
-                    game_state.move(last_square, selected_square, last_piece)
-                    last_square = []
-                    game_state.change_turn()
+                        if (square_x, square_y) in valid_moves:
+                            print("Piece moved")
+                            game_state.move(last_square, selected_square, last_piece)
+                            last_square = []
+                            valid_moves = []
+                            game_state.change_turn()
+                        else:
+                            print("Invalid move")
+                       
+
+                    
+                    
+
+        #Update Graphics        
         create_board(screen)   
         create_pieces(screen, game_state.board)
         clock.tick(MAX_FPS)
