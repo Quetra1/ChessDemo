@@ -47,7 +47,7 @@ class GameState():
 
     def validate_knight(self, square_x, square_y, selected_piece_colour):
         # Iterate through a set of coordinates to check if every possible move is valid
-        knight_moveset = ((-2, -1), (-2, 1), (-1, -2), (1, -2), (1, 2), (2, -1), (2, 1))
+        knight_moveset = ((-2, -1), (-2, 1), (-1, -2), (1, -2), (1, 2), (2, -1), (2, 1), (-1, 2))
         for move in knight_moveset:
             move_x = square_x + move[0]
             move_y = square_y + move[1]
