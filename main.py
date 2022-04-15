@@ -69,8 +69,7 @@ def main():
                     print("Piece moved")
                     game_state.move(last_square, selected_square, last_piece)
                     last_square = []
-                    game_state.change_turn
-        
+                    game_state.change_turn()
         create_board(screen)   
         create_pieces(screen, game_state.board)
         clock.tick(MAX_FPS)
