@@ -33,7 +33,7 @@ def main():
     pg.display.update()
 
     # Game loop that handles events and updates
-    last_selection = []
+    last_square = []
     running = True
     while running:
         for event in pg.event.get():
@@ -43,28 +43,31 @@ def main():
             # Event click
             if event.type == pg.MOUSEBUTTONDOWN:
                 # Get mouse position and store as X/Y values that correspond to each square
-                # Retrieve piece selected from that position on the board
+                # Retrieve square coordinates, piece type, and piece colour
                 location = pg.mouse.get_pos()
                 square_y = location[0] // SQUARE_SIZE 
                 square_x = location[1] // SQUARE_SIZE
+                selected_square = [square_x, square_y]
                 selected_piece = game_state.board[square_x][square_y]
                 selected_piece_colour = selected_piece[0]
 
                 #No piece is already selected
-                if not last_selection:
+                if not last_square:
                     #Check if the player is selecting their own pieces on their turn
                     #Set piece selection to true
                     if selected_piece_colour == "w" and game_state.current_turn == 0 or \
                        selected_piece_colour == "b" and game_state.current_turn == 1:
                         print("Piece selected")
-                        last_selection = selected_piece
+                        last_square = [square_x, square_y]
+                        print(last_square)
                     elif selected_piece_colour == "-":
                         print("Nothing selected")
-                #Piece is already selected
+                #A Piece is already selected
                 else:
                     #Selected same piece as the previous click, unselect the piece
-                    if last_selection == selected_piece:
-                        last_selection = []
+                    if last_square == selected_square:
+                        last_square = []
+                        selected_square = []
                         print("Unselected piece")
                     
 

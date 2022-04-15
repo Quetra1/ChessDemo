@@ -4,7 +4,7 @@ class GameState():
         self.starting_board()
         self.current_turn = 0
         self.check = False
-        self.selection = False
+        self.movelog = {}
 
     # 8x8 2D list represents the board
     # First character represents Black/White
