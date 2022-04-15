@@ -27,13 +27,14 @@ def main():
     game_state = engine.GameState()
     original_piece = []
     load_images()
-  
+    
     # Game loop that handles events and updates
     last_square = []
     last_piece = []
     valid_moves = []
     running = True
     while running:
+        create_board(screen) 
         for event in pg.event.get():
             # Close window if pressed
             if event.type == pg.QUIT:
@@ -58,6 +59,8 @@ def main():
                         last_piece = selected_piece
                         print("Piece selected")
                         valid_moves = game_state.generate_valid_moves(square_x, square_y, selected_piece, selected_piece_colour)
+                        
+                        
                     else:
                         print("Selection is invalid.")
                 #If same square is already selected, unselect 
@@ -67,25 +70,36 @@ def main():
                         print("Unselected piece")
                 #New square selected
                 elif last_square != selected_square:
+                    print("Selected square: " + str(selected_square))
                     #Check if move is valid, and then move
-                        if (square_x, square_y) in valid_moves:
-                            print("Piece moved")
-                            game_state.move(last_square, selected_square, last_piece)
-                            last_square = []
-                            valid_moves = []
-                            game_state.change_turn()
-                        else:
-                            print("Invalid move")
+                    if (square_x, square_y) in valid_moves:
+                        print("Piece moved")
+                        game_state.move(last_square, selected_square, last_piece)
+                        last_square = []
+                        valid_moves = []
+                        game_state.change_turn()
+                    else:
+                        print("Invalid move")
                        
 
                     
                     
 
-        #Update Graphics        
-        create_board(screen)   
+        #Update Graphics
+        if valid_moves:        
+            highlight_squares(screen, valid_moves, square_x, square_y)     
         create_pieces(screen, game_state.board)
         clock.tick(MAX_FPS)
         pg.display.update()
+
+def highlight_squares(screen, valid_moves, square_x, square_y):
+    s = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
+    s.set_alpha(100)
+    s.fill(pg.Color('blue'))
+    screen.blit(s, (square_y * SQUARE_SIZE, square_x *SQUARE_SIZE))
+    s.fill(pg.Color('yellow'))
+    for move in valid_moves:
+        screen.blit(s, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
 
 # Creates the board
 def create_board(screen):
