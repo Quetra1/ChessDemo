@@ -27,13 +27,10 @@ def main():
     game_state = engine.GameState()
     original_piece = []
     load_images()
-    create_board(screen)   
-    create_pieces(screen, game_state.board)
-    clock.tick(MAX_FPS)
-    pg.display.update()
-
+  
     # Game loop that handles events and updates
     last_square = []
+    last_piece = []
     running = True
     while running:
         for event in pg.event.get():
@@ -51,24 +48,33 @@ def main():
                 selected_piece = game_state.board[square_x][square_y]
                 selected_piece_colour = selected_piece[0]
 
-               
-                #Check if the player is selecting their own pieces on their turn
-                if selected_piece_colour == "w" and game_state.current_turn == 0 or \
-                       selected_piece_colour == "b" and game_state.current_turn == 1:
-                    #If piece is already selected, unselect 
-                    if last_square == selected_square:
+                #If no prior selection, check if new selection is valid
+                if not last_square:
+                    #Check if the player is selecting their own pieces on their turn
+                    #Select the piece if so
+                    if selected_piece_colour == game_state.current_turn:
+                        last_square = [square_x, square_y]
+                        last_piece = selected_piece
+                        print("Piece selected")
+                    else:
+                        print("Selection is invalid.")
+                #If same square is already selected, unselect 
+                elif last_square == selected_square:
                         last_square = []
                         selected_square = []
                         print("Unselected piece")
-                    #Otherwise select the new piece
-                    else:
-                        last_square = [square_x, square_y]
-                        print("Piece selected")
-                #No piece is selected
-                else:
-                    print("Nothing selected")
-                
-                    
+                #New square selected
+                elif last_square != selected_square:
+                    #Check if move is valid, and then move
+                    print("Piece moved")
+                    game_state.move(last_square, selected_square, last_piece)
+                    last_square = []
+                    game_state.change_turn
+        
+        create_board(screen)   
+        create_pieces(screen, game_state.board)
+        clock.tick(MAX_FPS)
+        pg.display.update()
 
 # Creates the board
 def create_board(screen):
