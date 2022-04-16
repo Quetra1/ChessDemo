@@ -28,7 +28,6 @@ class GameState():
         print(last_square[0])
         print(last_square[1])
         self.board[last_square[0]][last_square[1]] = "--"
-        #self.board[last_square[0]], [last_square[1]] = "--"
         self.board[selected_square[0]][selected_square[1]] = last_piece
         
     
@@ -42,7 +41,24 @@ class GameState():
         self.valid_moves = []
         # Knight
         if selected_piece_type == "N":
-            self.validate_knight(square_x, square_y, selected_piece_colour)
+            self.validate_knight(square_x, square_y, selected_piece_colour)     
+        # Rook
+        if selected_piece_type == "R":
+            directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
+            self.check_line(directions, 7, square_x, square_y, selected_piece_colour)
+        # Queen
+        if selected_piece_type == "Q":
+            directions = ((-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1))
+            self.check_line(directions, 7, square_x, square_y, selected_piece_colour)
+        # Bishop
+        if selected_piece_type == "B":
+            directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
+            self.check_line(directions, 7, square_x, square_y, selected_piece_colour)
+        # King
+        if  selected_piece_type == "K":
+            directions = ((-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1))
+            self.check_line(directions, 1, square_x, square_y, selected_piece_colour)
+        
         return self.valid_moves
 
     def validate_knight(self, square_x, square_y, selected_piece_colour):
@@ -58,4 +74,31 @@ class GameState():
                 # Move is valid if the colour is different
                 if piece_colour != selected_piece_colour:
                     self.valid_moves.append((move_x, move_y))
-                    print(self.valid_moves)
+    
+    def check_line(self, directions, length, square_x, square_y, selected_piece_colour):
+        for direction in directions:
+            x = direction[0]    
+            y = direction[1]
+            for i in range(length):
+                new_y = square_y + y
+                new_x = square_x + x
+                # End loop if square is out of bounds
+                if new_y >= 8 or new_y <= -1 or new_x >= 8 or new_x <= -1:
+                    break
+                # Simulates the move and then checks if the move would result in check for the moving player's king.
+                # If it does, move is not valid - skip to next move
+                #if self.simulate_move(new_x, new_y):
+                #    continue
+
+                piece = self.board[new_x][new_y]
+                piece_colour = piece[0]
+                # If the piece is the same colour, we stop before it is added to the list
+                if piece_colour == selected_piece_colour:
+                    break
+                self.valid_moves.append((new_x, new_y))
+                # If the piece is another colour, we stop after it is added to the list
+                if piece != "--":
+                    break
+                # Iterate the loop by moving in the direction
+                x += direction[0]
+                y += direction[1]
