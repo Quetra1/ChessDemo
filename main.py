@@ -66,7 +66,7 @@ def main():
                 #If same square is already selected, unselect 
                 elif last_square == selected_square:
                         last_square = []
-                        selected_square = []
+                        last_piece = []
                         print("Unselected piece")
                 #New square selected
                 elif last_square != selected_square:
@@ -86,7 +86,7 @@ def main():
                     
 
         #Update Graphics
-        if valid_moves:        
+        if last_piece:        
             highlight_squares(screen, valid_moves, square_x, square_y)     
         create_pieces(screen, game_state.board)
         clock.tick(MAX_FPS)
