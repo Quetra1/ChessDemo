@@ -44,12 +44,12 @@ def main():
                 # Get mouse position and store as X/Y values that correspond to each square
                 # Retrieve square coordinates, piece type, and piece colour
                 location = pg.mouse.get_pos()
-                square_y = location[0] // SQUARE_SIZE 
-                square_x = location[1] // SQUARE_SIZE
-                selected_square = [square_x, square_y]
-                selected_piece = game_state.board[square_x][square_y]
+                col = location[0] // SQUARE_SIZE 
+                row = location[1] // SQUARE_SIZE
+                selected_square = [row, col]
+                selected_piece = game_state.board[row][col]
                 selected_piece_colour = selected_piece[0]
-
+                print("row:" + str(row) + " col: " + str(col))
                 #If no prior selection, check if new selection is valid
                 if not last_square:
                     #Check if the player is selecting their own pieces on their turn
@@ -58,7 +58,7 @@ def main():
                         last_square = selected_square
                         last_piece = selected_piece
                         print("Piece selected")
-                        valid_moves = game_state.generate_valid_moves(square_x, square_y, selected_piece, selected_piece_colour)
+                        valid_moves = game_state.generate_valid_moves(row, col, selected_piece, selected_piece_colour)
                         
                         
                     else:
@@ -72,7 +72,7 @@ def main():
                 elif last_square != selected_square:
                     print("Selected square: " + str(selected_square))
                     #Check if move is valid, and then move
-                    if (square_x, square_y) in valid_moves:
+                    if (row, col) in valid_moves:
                         print("Piece moved")
                         game_state.move(last_square, selected_square, last_piece)
                         last_square = []
@@ -87,16 +87,16 @@ def main():
 
         #Update Graphics
         if last_piece:        
-            highlight_squares(screen, valid_moves, square_x, square_y)     
+            highlight_squares(screen, valid_moves, row, col)     
         create_pieces(screen, game_state.board)
         clock.tick(MAX_FPS)
         pg.display.update()
 
-def highlight_squares(screen, valid_moves, square_x, square_y):
+def highlight_squares(screen, valid_moves, row, col):
     s = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
     s.set_alpha(100)
     s.fill(pg.Color('blue'))
-    screen.blit(s, (square_y * SQUARE_SIZE, square_x *SQUARE_SIZE))
+    screen.blit(s, (col * SQUARE_SIZE, row *SQUARE_SIZE))
     s.fill(pg.Color('yellow'))
     for move in valid_moves:
         screen.blit(s, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
