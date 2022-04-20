@@ -81,10 +81,6 @@ def main():
                     else:
                         print("Invalid move")
                        
-
-                    
-                    
-
         #Update Graphics
         if last_piece:        
             highlight_squares(screen, valid_moves, row, col)     

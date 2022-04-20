@@ -159,6 +159,7 @@ class GameState():
                 b += direction[1]
         
     def move_results_in_check(self, row, col, new_row, new_col, selected_piece, selected_piece_colour):
+        pin = False
         selected_piece_type = selected_piece[1]
         # Moves the piece to the new location and deletes it from the old location
         # saving the piece it replaces to put it back later
@@ -169,15 +170,17 @@ class GameState():
         # If its the king moving then update its position (used in check pin function)
         if selected_piece_type == "K":
             king_square = (new_row, new_col)
+            #Check if a knight covers the square the king is moving to
         else:
             if selected_piece_colour == "w":
                 king_square = self.white_king_square
             else:
                 king_square = self.black_king_square
-        print("King square: " + str(king_square))
         #Horizontal pin check
         directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
-        pin = self.check_pin(directions, selected_piece_colour, king_square, "Line")
+        pin = self.move_results_in_knight_check(selected_piece_colour, king_square)
+        if not pin:
+            pin = self.check_pin(directions, selected_piece_colour, king_square, "Line")
         if not pin:
             #Diaganal pin check
             directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
@@ -194,6 +197,21 @@ class GameState():
         else:
             return False
     
+    def move_results_in_knight_check(self, selected_piece_colour, king_square):
+        knight_moveset = ((-2, -1), (-2, 1), (-1, -2), (1, -2), (1, 2), (2, -1), (2, 1), (-1, 2))
+        for move in knight_moveset:
+            new_row = king_square[0] + move[0]
+            new_col = king_square[1] + move[1]
+            # Skip check if position is off the board
+            if 0 <= new_col < 8 and 0 <= new_row < 8:
+                piece = self.board[new_row][new_col]
+                piece_type = piece[1]
+                piece_colour = piece[0]
+                # Enemy Knight covers this square
+                if piece_type == "N" and piece_colour != selected_piece_colour:
+                    print("Knight found")
+                    return True
+
     def check_pin(self, directions, selected_piece_colour, king_square, directiontype):
         for direction in directions:
             row = direction[0]
