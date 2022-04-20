@@ -26,11 +26,16 @@ class GameState():
     
     # Move the piece - original square is now blank, new square is now filled with the old piece.
     # Piece at the new square is automatically overwritten if it exists.
-    def move(self, last_square, selected_square, last_piece):
-        print(last_square[0])
-        print(last_square[1])
+    def move(self, last_square, selected_square, moved_piece):
         self.board[last_square[0]][last_square[1]] = "--"
-        self.board[selected_square[0]][selected_square[1]] = last_piece
+        self.board[selected_square[0]][selected_square[1]] = moved_piece
+        moved_piece_type = moved_piece[1]
+        moved_piece_colour = moved_piece[0]
+        if moved_piece_type == "K":
+            if moved_piece_colour == "w":
+                self.white_king_square = selected_square
+            else:
+                self.black_king_square = selected_square
     
     def change_turn(self):
         if self.current_turn == "w":
@@ -45,10 +50,10 @@ class GameState():
         if selected_piece_type == "P":
             # White pawn
             if selected_piece_colour == "w":
-                self.validate_pawn_move(row, col, -1, +1, 6, selected_piece_colour)
+                self.validate_pawn_move(row, col, -1, +1, 6, selected_piece, selected_piece_colour)
             # Black pawn
             else:
-                self.validate_pawn_move(row, col, +1, -1, 1, selected_piece_colour)
+                self.validate_pawn_move(row, col, +1, -1, 1, selected_piece, selected_piece_colour)
         # Knight
         if selected_piece_type == "N":
             self.validate_knight(row, col, selected_piece, selected_piece_colour)     
@@ -71,25 +76,26 @@ class GameState():
         
         return self.valid_moves
 
-    def validate_pawn_take(self, col, row, selected_piece_colour):
+    def validate_pawn_take(self, row, col, new_row, new_col, selected_piece, selected_piece_colour):
         # Skip check if diaganal is off the board
-        if col < 0 or row < 0 or col > 7 or row > 7:
+        if new_col < 0 or new_row < 0 or new_col > 7 or new_row > 7:
             return
         else:
             # Simulates the move and then checks if the move would result in check for the moving player's king.
             # If it does, move is not valid
-            #if not self.simulate_move(row, col):
+            if not self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
                 # Add to valid moves there is a piece on the diaganal square and the piece is a different colour
-                piece = self.board[col][row]
+                piece = self.board[new_row][new_col]
                 piece_colour = piece[0]
                 if piece != "--" and piece_colour != selected_piece_colour:
-                    self.valid_moves.append((col, row))
+                    self.valid_moves.append((new_row, new_col))
 
-    def validate_pawn_move(self, row, col, a, b, starting_row, selected_piece_colour):
+    def validate_pawn_move(self, row, col, a, b, starting_row, selected_piece, selected_piece_colour):
         # Check for pieces on diagnal to take
-        self.validate_pawn_take(row + a, col + a, selected_piece_colour)
-        self.validate_pawn_take(row + a, col + b, selected_piece_colour)
 
+        self.validate_pawn_take(row, col, row + a, col + a, selected_piece, selected_piece_colour)
+        self.validate_pawn_take(row, col, row + a, col + b, selected_piece,selected_piece_colour)
+        
         # Check if pawn is on starting position, if so allow double move
         if row == starting_row:
             x = 3
@@ -98,14 +104,11 @@ class GameState():
 
         for i in range(1, x):
             new_row = row + (i * a)
-            print("Original Coordinates: " + str(row) + "," + str(col))
-            print("New Coordinates: " + str(new_row) + "," + str(col))
             piece = self.board[new_row][col]
             # Simulates the move and then checks if the move would result in check for the moving player's king.
             # If it does, move is not valid - skip to next move
-            #if self.simulate_move(self.old_row, col):
-            #    continue
-
+            if self.move_results_in_check(row, col, new_row, col, selected_piece, selected_piece_colour):
+                continue
             # If there is a piece in the way, we can't move there - return before added to valid moves
             if piece != "--":
                 return
@@ -139,6 +142,7 @@ class GameState():
                 # Simulates the move and then checks if the move would result in check for the moving player's king.
                 # If it does, move is not valid - skip to next move
                 if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
+                    print("Check")
                     continue
 
                 piece = self.board[new_row][new_col]
@@ -162,7 +166,6 @@ class GameState():
         replaced_piece = self.board[new_row][new_col]
         self.board[new_row][new_col] = selected_piece
 
-        
         # If its the king moving then update its position (used in check pin function)
         if selected_piece_type == "K":
             king_square = (new_row, new_col)
@@ -171,9 +174,7 @@ class GameState():
                 king_square = self.white_king_square
             else:
                 king_square = self.black_king_square
-        # Check to see if king is in check now, returns True if so
-        
-
+        print("King square: " + str(king_square))
         #Horizontal pin check
         directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
         pin = self.check_pin(directions, selected_piece_colour, king_square, "Line")
@@ -186,6 +187,8 @@ class GameState():
         # Reverts the board state to how it was originally
         self.board[row][col] = selected_piece
         self.board[new_row][new_col] = replaced_piece
+
+        # Check to see if king is in check now, returns True if so
         if pin:
             return True
         else:
@@ -206,7 +209,7 @@ class GameState():
                 piece_colour = piece[0]
                 piece_type = piece[1]
 
-                # If the square empty, it will skip these checks and iterate the nerowt square
+                # If the square empty, it will skip these checks and iterate the next square
                 if piece != "--":
                     # If the colour is different, it will stop iterating in this direction
                     # as a friendly piece is blocking the vision
@@ -215,11 +218,17 @@ class GameState():
                         # we are in check
                         if piece_type == "K" and d == 0:
                             return True
+                        if piece_type == "P" and d == 0 and directiontype == "Diaganal":
+                            print("Diaganal pawn pin at " + str(new_row) + "." + str(new_col))
+                            return True
+
                         if directiontype == "Line":
                             if piece_type == "R" or piece_type == "Q":
+                                print("Line pin at " + str(new_row) + "." + str(new_col))
                                 return True
                         if directiontype == "Diaganal":
                             if piece_type == "Q" or piece_type == "B":
+                                print("Diaganal pin at " + str(new_row) + "." + str(new_col))
                                 return True
                         # All remaining options are enemy pieces which cannot take in this direction,
                         # stop iterating this direction as the vision of other pieces are blocked
