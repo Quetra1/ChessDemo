@@ -28,15 +28,25 @@ class GameState():
     # Piece at the new square is automatically overwritten if it exists.
     def move(self, last_square, selected_square, moved_piece):
         self.board[last_square[0]][last_square[1]] = "--"
-        self.board[selected_square[0]][selected_square[1]] = moved_piece
+        
         moved_piece_type = moved_piece[1]
         moved_piece_colour = moved_piece[0]
+
+        #If the moving piece is a King, update its location tracker
         if moved_piece_type == "K":
             if moved_piece_colour == "w":
                 self.white_king_square = selected_square
             else:
                 self.black_king_square = selected_square
-    
+        #If the moving piece is a pawn and its reached the opposite end, promote it
+        if moved_piece_type == "P" and moved_piece_colour == "w" and selected_square[0] == 0:
+                self.board[selected_square[0]][selected_square[1]] = "wQ"
+        elif moved_piece_type == "P" and moved_piece_colour == "b" and selected_square[0] == 7:
+                self.board[selected_square[0]][selected_square[1]] = "bQ"
+        #If no promotion, just move the piece
+        else:
+                self.board[selected_square[0]][selected_square[1]] = moved_piece
+
     def change_turn(self):
         if self.current_turn == "w":
             self.current_turn = "b"
