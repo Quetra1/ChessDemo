@@ -125,6 +125,10 @@ class GameState():
             if 0 <= new_col < 8 and 0 <= new_row < 8:
                 piece = self.board[new_row][new_col]
                 piece_colour = piece[0]
+                # Simulates the move and then checks if the move would result in check for the moving player's king.
+                # If it does, move is not valid - skip to next move
+                if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
+                    continue
                 # Move is valid if the colour is different
                 if piece_colour != selected_piece_colour:
                     self.valid_moves.append((new_row, new_col))
@@ -143,6 +147,8 @@ class GameState():
                 # If it does, move is not valid - skip to next move
                 if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
                     print("Check")
+                    a += direction[0]
+                    b += direction[1]
                     continue
 
                 piece = self.board[new_row][new_col]
