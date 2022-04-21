@@ -7,7 +7,9 @@ class GameState():
         self.movelog = {}
         self.white_king_square = [7, 4]
         self.black_king_square = [0, 4]
-
+        self.row_notation = {7: "1", 6 : "2", 5 : "3", 4 : "4", 3: "5", 2 : "6", 1 : "7", 0 : 6}
+        self.col_notation = {0: "a", 1 : "b", 2 : "c", 3 : "d", 4: "e", 5 : "f", 6 : "g", 7 : "h"}
+        self.en_passant_square = []
     # 8x8 2D list represents the board
     # First character represents Black/White
     # Second character represents the piece type R, N, B, K, P
@@ -24,6 +26,10 @@ class GameState():
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
         ]
     
+    #Converts row/col references to our board into chess notation: e.g 7 (row) / 4 (col) becomes e1 - where 7 is 1 and e is 4
+    def convert_rows(self, row, col):
+        print(self.col_notation[col] + self.row_notation[row])
+        return self.col_notation[col] + self.row_notation[row]
     # Move the piece - original square is now blank, new square is now filled with the old piece.
     # Piece at the new square is automatically overwritten if it exists.
     def move(self, last_square, selected_square, moved_piece):
@@ -46,6 +52,32 @@ class GameState():
         #If no promotion, just move the piece
         else:
                 self.board[selected_square[0]][selected_square[1]] = moved_piece
+
+        # En Passant - If the selected square is eligible for en passant, capture the pawn above the square
+        if self.en_passant_square == selected_square:
+            print("Success: " + str(selected_square[0]))
+            if selected_square[0] == 2 and moved_piece_colour == "w":
+                self.board[selected_square[0] + 1][selected_square[1]] = "--"
+            if selected_square[0] == 5 and moved_piece_colour == "b":
+                print("Success")
+                self.board[selected_square[0] - 1][selected_square[1]] = "--"
+        
+        print("Last square: " + str(last_square[0]) + "Selected square: " + str(selected_square[0]) + "L + 2: " + str(last_square[0] + 2))
+        #Set en passant squares
+        if moved_piece_type == "P" and moved_piece_colour == "b" and last_square[0] + 2 == selected_square[0]:
+            self.en_passant_square = [selected_square[0] - 1, selected_square[1]]
+            print("En Passant white")
+        elif moved_piece_type == "P" and moved_piece_colour == "w" and last_square[0] - 2 == selected_square[0]:
+            self.en_passant_square = [selected_square[0] + 1, selected_square[1]]
+            print("En Passant black")
+        else:
+            self.en_passant_square = []
+        
+        if self.en_passant_square:
+            print("En passant square: " + str(self.en_passant_square))
+
+
+            
 
     def change_turn(self):
         if self.current_turn == "w":
@@ -102,10 +134,14 @@ class GameState():
 
     def validate_pawn_move(self, row, col, a, b, starting_row, selected_piece, selected_piece_colour):
         # Check for pieces on diagnal to take
-
         self.validate_pawn_take(row, col, row + a, col + a, selected_piece, selected_piece_colour)
-        self.validate_pawn_take(row, col, row + a, col + b, selected_piece,selected_piece_colour)
-        
+        self.validate_pawn_take(row, col, row + a, col + b, selected_piece, selected_piece_colour)
+        #En Passant Check
+        if self.en_passant_square == [row + a, col - 1] or self.en_passant_square == [row + a, col + 1]:
+            self.valid_moves.append((self.en_passant_square[0], self.en_passant_square[1]))
+            print("En passant detected")
+
+
         # Check if pawn is on starting position, if so allow double move
         if row == starting_row:
             x = 3
