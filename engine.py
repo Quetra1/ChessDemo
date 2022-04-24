@@ -138,8 +138,14 @@ class GameState():
         self.validate_pawn_take(row, col, row + a, col + b, selected_piece, selected_piece_colour)
         #En Passant Check
         if self.en_passant_square == [row + a, col - 1] or self.en_passant_square == [row + a, col + 1]:
-            self.valid_moves.append((self.en_passant_square[0], self.en_passant_square[1]))
             print("En passant detected")
+            replaced_piece = self.board[self.en_passant_square[0] + b][self.en_passant_square[1]]
+            self.board[self.en_passant_square[0] + b][self.en_passant_square[1]] = "--"
+            if not self.move_results_in_check(row, col, self.en_passant_square[0], self.en_passant_square[1], selected_piece, selected_piece_colour):
+                self.valid_moves.append((self.en_passant_square[0], self.en_passant_square[1]))
+            self.board[self.en_passant_square[0] + b][self.en_passant_square[1]] = replaced_piece
+         
+               
 
 
         # Check if pawn is on starting position, if so allow double move
