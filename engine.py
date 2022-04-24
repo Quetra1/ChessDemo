@@ -1,4 +1,7 @@
 # Responsible for storing current game state, determining valid moves
+from re import X
+
+
 class GameState():
     def __init__(self):
         self.starting_board()
@@ -10,6 +13,13 @@ class GameState():
         self.row_notation = {7: "1", 6 : "2", 5 : "3", 4 : "4", 3: "5", 2 : "6", 1 : "7", 0 : 6}
         self.col_notation = {0: "a", 1 : "b", 2 : "c", 3 : "d", 4: "e", 5 : "f", 6 : "g", 7 : "h"}
         self.en_passant_square = []
+        self.white_queenside_castling_square = [7, 0]
+        self.black_queenside_castling_square = [0, 0]
+        self.white_kingside_castling_square = [7, 7]
+        self.black_kingside_castling_square = [0, 7]
+        #K - (White can castle kingside) Q - (White can castle queenside) k - (Black can castle kingside) q - (Black can castle queenside)
+        # "-" Neither can castle
+        self.castling_rights = "KQkq"
     # 8x8 2D list represents the board
     # First character represents Black/White
     # Second character represents the piece type R, N, B, K, P
@@ -34,17 +44,53 @@ class GameState():
     # Piece at the new square is automatically overwritten if it exists.
     def move(self, last_square, selected_square, moved_piece):
         self.board[last_square[0]][last_square[1]] = "--"
-        
         moved_piece_type = moved_piece[1]
         moved_piece_colour = moved_piece[0]
+        captured_piece = self.board[selected_square[0]][selected_square[1]]
 
-        #If the moving piece is a King, update its location tracker
+        #If moving piece or captured piece is a rook and is still on their starting square, remove castling rights.
+        if "K" in self.castling_rights:
+            if last_square == self.white_kingside_castling_square and moved_piece == "wR" or captured_piece == "wR" and selected_square == self.white_kingside_castling_square:
+                self.castling_rights = self.castling_rights.replace("K", "")
+        if "Q" in self.castling_rights:
+            if last_square == self.white_queenside_castling_square and moved_piece == "wR" or captured_piece == "wR" and selected_square == self.white_queenside_castling_square:
+                self.castling_rights = self.castling_rights.replace("Q", "")
+        if "k" in self.castling_rights:
+            if last_square == self.black_kingside_castling_square and moved_piece == "bR" or captured_piece == "bR" and selected_square == self.black_kingside_castling_square:
+                self.castling_rights = self.castling_rights.replace("k", "")
+        if "q" in self.castling_rights:
+            if last_square == self.black_queenside_castling_square and moved_piece == "bR" or captured_piece == "bR" and selected_square == self.black_queenside_castling_square:
+                self.castling_rights = self.castling_rights.replace("q", "")
+
+        #If the moving piece is a King, update its location tracker and remove castling rights
         if moved_piece_type == "K":
             if moved_piece_colour == "w":
                 self.white_king_square = selected_square
+                if "K" in self.castling_rights:
+                    if selected_square == [7, 6]:
+                        self.board[self.white_kingside_castling_square[0]][self.white_kingside_castling_square[1]] = "--"
+                        self.board[self.white_kingside_castling_square[0]][self.white_kingside_castling_square[1] - 2] = "wR"
+                    self.castling_rights = self.castling_rights.replace("K", "")
+                if "Q" in self.castling_rights:
+                    if selected_square == [7, 2]:
+                        self.board[self.white_queenside_castling_square[0]][self.white_queenside_castling_square[1]] = "--"
+                        self.board[self.white_queenside_castling_square[0]][self.white_queenside_castling_square[1] + 3] = "wR"
+                    self.castling_rights = self.castling_rights.replace("Q", "")
+                
             else:
                 self.black_king_square = selected_square
-        #If the moving piece is a pawn and its reached the opposite end, promote it
+                if "k" in self.castling_rights:
+                    if selected_square == [0, 6]:
+                        self.board[self.black_kingside_castling_square[0]][self.black_kingside_castling_square[1]] = "--"
+                        self.board[self.black_kingside_castling_square[0]][self.black_kingside_castling_square[1] - 2] = "bR"
+                    self.castling_rights = self.castling_rights.replace("k", "")
+                if "q" in self.castling_rights:
+                    if selected_square == [0, 2]:
+                        self.board[self.black_queenside_castling_square[0]][self.black_queenside_castling_square[1]] = "--"
+                        self.board[self.black_queenside_castling_square[0]][self.black_queenside_castling_square[1] + 3] = "bR"
+                    self.castling_rights = self.castling_rights.replace("q", "")
+
+        #If the moving piece is a pawn and it has reached the opposite end, promote it
         if moved_piece_type == "P" and moved_piece_colour == "w" and selected_square[0] == 0:
                 self.board[selected_square[0]][selected_square[1]] = "wQ"
         elif moved_piece_type == "P" and moved_piece_colour == "b" and selected_square[0] == 7:
@@ -61,6 +107,7 @@ class GameState():
             if selected_square[0] == 5 and moved_piece_colour == "b":
                 print("Success")
                 self.board[selected_square[0] - 1][selected_square[1]] = "--"
+
         
         print("Last square: " + str(last_square[0]) + "Selected square: " + str(selected_square[0]) + "L + 2: " + str(last_square[0] + 2))
         #Set en passant squares
@@ -75,8 +122,6 @@ class GameState():
         
         if self.en_passant_square:
             print("En passant square: " + str(self.en_passant_square))
-
-
             
 
     def change_turn(self):
@@ -115,6 +160,7 @@ class GameState():
         if  selected_piece_type == "K":
             directions = ((-1, 0), (0, -1), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1))
             self.check_line(directions, 1, row, col, selected_piece, selected_piece_colour)
+            self.check_castling(row, col, selected_piece_colour)
         
         return self.valid_moves
 
@@ -166,6 +212,33 @@ class GameState():
                 print("Check")
             else:
                 self.valid_moves.append((new_row, col))
+
+
+    def check_castling(self, row, col, selected_piece_colour):
+        if "K" in self.castling_rights and selected_piece_colour == "w":
+            if not self.check_king_blocked(row, col, 1, 3):
+                self.valid_moves.append((7, 6))
+        if "Q" in self.castling_rights and selected_piece_colour == "w":
+            if not self.check_king_blocked(row, col, -1, 4):
+                self.valid_moves.append((7, 2))
+        if "k" in self.castling_rights and selected_piece_colour == "b":
+            if not self.check_king_blocked(row, col, 1, 3):
+                self.valid_moves.append((0, 6))
+        if "q" in self.castling_rights and selected_piece_colour == "b":
+            if not self.check_king_blocked(row, col, -1, 4):
+                self.valid_moves.append((0, 2))
+
+    def check_king_blocked(self, row, col, x, z):
+        blocked = False
+        y = x
+        for i in range(1, z):
+            if self.board[row][col + y] != "--":
+                blocked = True
+            y = y + x
+        return blocked
+                
+
+
 
     def validate_knight(self, row, col, selected_piece, selected_piece_colour):
         # Iterate through a set of coordinates to check if every possible move is valid
