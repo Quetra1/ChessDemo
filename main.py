@@ -58,9 +58,7 @@ def main():
                         last_square = selected_square
                         last_piece = selected_piece
                         print("Piece selected")
-                        valid_moves = game_state.generate_valid_moves(row, col, selected_piece, selected_piece_colour)
-                        
-                        
+                        valid_moves = game_state.generate_valid_moves(row, col, selected_piece, selected_piece_colour)        
                     else:
                         print("Selection is invalid.")
                 #If same square is already selected, unselect 

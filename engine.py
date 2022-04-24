@@ -157,13 +157,13 @@ class GameState():
         for i in range(1, x):
             new_row = row + (i * a)
             piece = self.board[new_row][col]
-            # Simulates the move and then checks if the move would result in check for the moving player's king.
-            # If it does, move is not valid - skip to next move
-            if self.move_results_in_check(row, col, new_row, col, selected_piece, selected_piece_colour):
-                continue
             # If there is a piece in the way, we can't move there - return before added to valid moves
             if piece != "--":
                 return
+            # Simulates the move and then checks if the move would result in check for the moving player's king.
+            # If it does, move is not valid - skip to next move
+            if self.move_results_in_check(row, col, new_row, col, selected_piece, selected_piece_colour):
+                print("Check")
             else:
                 self.valid_moves.append((new_row, col))
 
@@ -195,26 +195,32 @@ class GameState():
                 # End loop if square is out of bounds
                 if new_col >= 8 or new_col <= -1 or new_row >= 8 or new_row <= -1:
                     break
-                # Simulates the move and then checks if the move would result in check for the moving player's king.
-                # If it does, move is not valid - skip to next move
-                if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
-                    print("Check")
-                    a += direction[0]
-                    b += direction[1]
-                    continue
 
                 piece = self.board[new_row][new_col]
                 piece_colour = piece[0]
-                # If the piece is the same colour, we stop before it is added to the list
+                # If the piece is the same colour, we stop before it is added to the list (attacking piece is blocked)
                 if piece_colour == selected_piece_colour:
                     break
-                self.valid_moves.append((new_row, new_col))
-                # If the piece is another colour, we stop after it is added to the list
+                # If the piece is another colour, we add it to the list and then stop (defending piece is taken)
                 if piece != "--":
+                    #Check if move results in check before adding it to the list
+                    if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
+                         print("Check")
+                    else:
+                        self.valid_moves.append((new_row, new_col))
                     break
                 # Iterate the loop by moving in the direction
                 a += direction[0]
                 b += direction[1]
+                #Check if move results in check before adding it to the list
+                if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
+                    print("Check")
+                else: 
+                    #Square is empty and doesn't result in check - allow move
+                    self.valid_moves.append((new_row, new_col))
+
+          
+                
         
     def move_results_in_check(self, row, col, new_row, new_col, selected_piece, selected_piece_colour):
         pin = False
