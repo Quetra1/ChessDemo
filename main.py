@@ -40,7 +40,7 @@ def main():
             if event.type == pg.QUIT:
                 running = False
             # Event click
-            if event.type == pg.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN: 
                 # Get mouse position and store as X/Y values that correspond to each square
                 # Retrieve square coordinates, piece type, and piece colour
                 location = pg.mouse.get_pos()
@@ -49,7 +49,7 @@ def main():
                 selected_square = [row, col]
                 selected_piece = game_state.board[row][col]
                 selected_piece_colour = selected_piece[0]
-                print("row:" + str(row) + " col: " + str(col))
+                print("row:" + str(row) + " col: " + str(col))           
                 #If no prior selection, check if new selection is valid
                 if not last_square:
                     #Check if the player is selecting their own pieces on their turn
@@ -58,6 +58,7 @@ def main():
                         last_square = selected_square
                         last_piece = selected_piece
                         print("Piece selected")
+                        game_state.valid_moves = []
                         valid_moves = game_state.generate_valid_moves(row, col, selected_piece, selected_piece_colour)        
                     else:
                         print("Selection is invalid.")
@@ -75,7 +76,14 @@ def main():
                         game_state.move(last_square, selected_square, last_piece)
                         last_square = []
                         valid_moves = []
+                        print("current colour" + game_state.current_turn)
+                        if game_state.current_turn == "w":
+                            enemy_colour = "b"
+                        else:
+                            enemy_colour = "w"
+                        print(game_state.check_game_state(game_state.current_turn, enemy_colour))
                         game_state.change_turn()
+                        game_state.valid_moves = []
                     else:
                         print("Invalid move")
                        
@@ -85,7 +93,7 @@ def main():
         create_pieces(screen, game_state.board)
         clock.tick(MAX_FPS)
         pg.display.update()
-
+          
 def highlight_squares(screen, valid_moves, row, col):
     s = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
     s.set_alpha(100)
@@ -116,3 +124,4 @@ def create_pieces(screen, board):
 
 if __name__ == "__main__":
     main()
+    

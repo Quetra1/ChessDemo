@@ -1,12 +1,10 @@
 # Responsible for storing current game state, determining valid moves
-from re import X
-
-
 class GameState():
     def __init__(self):
         self.starting_board()
         self.current_turn = "w"
         self.check = False
+        self.valid_moves = []
         self.movelog = {}
         self.white_king_square = [7, 4]
         self.black_king_square = [0, 4]
@@ -128,10 +126,21 @@ class GameState():
         if self.current_turn == "w":
             self.current_turn = "b"
         else:
-            self.current_turn = "w"
+            self.current_turn = "w" 
+    
+    def generate_all_valid_moves(self, colour):
+        row = -1
+        for index in self.board:
+            row = row + 1
+            col = -1
+            for piece in index:
+                col = col + 1
+                if piece[0] == colour:
+                    self.generate_valid_moves(row, col, piece, piece[0])
+        return self.valid_moves
+
     def generate_valid_moves(self, row, col, selected_piece, selected_piece_colour):
         selected_piece_type = selected_piece[1]
-        self.valid_moves = []
 
         # Pawn
         if selected_piece_type == "P":
@@ -164,6 +173,44 @@ class GameState():
         
         return self.valid_moves
 
+    def validate_check(self, king_square, piece_colour):
+        # If its the king moving then update its position
+        #Horizontal pin check
+        directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
+        check = self.move_results_in_knight_check(piece_colour, king_square)
+        if not check:
+            check = self.check_pin(directions, piece_colour, king_square, "Line")
+        if not check:
+            #Diaganal pin check
+            directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
+            check = self.check_pin(directions, piece_colour, king_square, "Diaganal")
+        return check    
+
+    #See if move resulted in check, checkmate, or stalemate
+    def check_game_state(self, colour, enemy_colour):
+        self.valid_moves = []
+        state = "No Check"
+        if colour == "w":
+            king_square = self.black_king_square
+        else:
+            king_square = self.white_king_square
+        check = self.validate_check(king_square, enemy_colour)
+        moves_allowed = self.generate_all_valid_moves(enemy_colour)
+        if check:
+            print("In check")
+            for moves in moves_allowed:
+                print(moves)
+            if len(moves_allowed) > 0:
+                state = "Check"
+            elif len(moves_allowed) == 0:
+                state = "Checkmate"
+        elif len(moves_allowed) == 0:
+            state = "Stalemate"
+        self.valid_moves = []
+        return state
+
+            
+
     def validate_pawn_take(self, row, col, new_row, new_col, selected_piece, selected_piece_colour):
         # Skip check if diaganal is off the board
         if new_col < 0 or new_row < 0 or new_col > 7 or new_row > 7:
@@ -191,9 +238,6 @@ class GameState():
                 self.valid_moves.append((self.en_passant_square[0], self.en_passant_square[1]))
             self.board[self.en_passant_square[0] + b][self.en_passant_square[1]] = replaced_piece
          
-               
-
-
         # Check if pawn is on starting position, if so allow double move
         if row == starting_row:
             x = 3
@@ -209,7 +253,8 @@ class GameState():
             # Simulates the move and then checks if the move would result in check for the moving player's king.
             # If it does, move is not valid - skip to next move
             if self.move_results_in_check(row, col, new_row, col, selected_piece, selected_piece_colour):
-                print("Check")
+                pass
+                #print("Check")
             else:
                 self.valid_moves.append((new_row, col))
 
@@ -278,7 +323,8 @@ class GameState():
                 if piece != "--":
                     #Check if move results in check before adding it to the list
                     if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
-                         print("Check")
+                         pass
+                         #print("Check")
                     else:
                         self.valid_moves.append((new_row, new_col))
                     break
@@ -287,52 +333,35 @@ class GameState():
                 b += direction[1]
                 #Check if move results in check before adding it to the list
                 if self.move_results_in_check(row, col, new_row, new_col, selected_piece, selected_piece_colour):
-                    print("Check")
+                    pass
+                    #print("Check")
                 else: 
                     #Square is empty and doesn't result in check - allow move
                     self.valid_moves.append((new_row, new_col))
 
-          
-                
-        
     def move_results_in_check(self, row, col, new_row, new_col, selected_piece, selected_piece_colour):
-        pin = False
         selected_piece_type = selected_piece[1]
         # Moves the piece to the new location and deletes it from the old location
         # saving the piece it replaces to put it back later
         self.board[row][col] = "--"
         replaced_piece = self.board[new_row][new_col]
         self.board[new_row][new_col] = selected_piece
-
-        # If its the king moving then update its position (used in check pin function)
         if selected_piece_type == "K":
             king_square = (new_row, new_col)
-            #Check if a knight covers the square the king is moving to
         else:
             if selected_piece_colour == "w":
                 king_square = self.white_king_square
             else:
                 king_square = self.black_king_square
-        #Horizontal pin check
-        directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
-        pin = self.move_results_in_knight_check(selected_piece_colour, king_square)
-        if not pin:
-            pin = self.check_pin(directions, selected_piece_colour, king_square, "Line")
-        if not pin:
-            #Diaganal pin check
-            directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
-            pin = self.check_pin(directions, selected_piece_colour, king_square, "Diaganal")
-
-      
+        
+        #Check if the king is now in check
+        result = self.validate_check(king_square, selected_piece_colour)
         # Reverts the board state to how it was originally
         self.board[row][col] = selected_piece
         self.board[new_row][new_col] = replaced_piece
 
-        # Check to see if king is in check now, returns True if so
-        if pin:
-            return True
-        else:
-            return False
+        return result
+        
     
     def move_results_in_knight_check(self, selected_piece_colour, king_square):
         knight_moveset = ((-2, -1), (-2, 1), (-1, -2), (1, -2), (1, 2), (2, -1), (2, 1), (-1, 2))
