@@ -403,8 +403,10 @@ class GameState():
                         if piece_type == "K" and d == 0:
                             return True
                         if piece_type == "P" and d == 0 and directiontype == "Diaganal":
-                            print("Diaganal pawn pin at " + str(new_row) + "." + str(new_col))
-                            return True
+                            #Make sure the pawn pin is in the right direction
+                            if piece_colour == "w" and new_row > king_square[0] or piece_colour == "b" and new_row < king_square[0]:
+                                print("Diaganal pawn pin at " + str(new_row) + "." + str(new_col))
+                                return True
 
                         if directiontype == "Line":
                             if piece_type == "R" or piece_type == "Q":
