@@ -3,7 +3,6 @@ class GameState():
     def __init__(self):
         self.starting_board()
         self.current_turn = "w"
-        self.check = False
         self.valid_moves = []
         self.movelog = {}
         self.white_king_square = [7, 4]
@@ -208,7 +207,8 @@ class GameState():
             state = "Stalemate"
         self.valid_moves = []
         return state
-
+    
+    
             
 
     def validate_pawn_take(self, row, col, new_row, new_col, selected_piece, selected_piece_colour):

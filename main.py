@@ -21,13 +21,13 @@ def load_images():
 
 def main():
     # Setup our window, clock, preload the images, load the game state
+    
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     clock = pg.time.Clock()
     screen.fill(pg.Color("white"))
     game_state = engine.GameState()
-    original_piece = []
     load_images()
-    
+    status = "No Check"
     # Game loop that handles events and updates
     last_square = []
     last_piece = []
@@ -39,7 +39,15 @@ def main():
             # Close window if pressed
             if event.type == pg.QUIT:
                 running = False
-            # Event click
+
+            # Event reset button press (Resets the board when r is pressed)
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_r:
+                    game_state = engine.GameState()
+                    last_square = []
+                    last_piece = []
+                    status = "No Check"
+            # Event select square
             if event.type == pg.MOUSEBUTTONDOWN: 
                 # Get mouse position and store as X/Y values that correspond to each square
                 # Retrieve square coordinates, piece type, and piece colour
@@ -81,9 +89,12 @@ def main():
                             enemy_colour = "b"
                         else:
                             enemy_colour = "w"
-                        print(game_state.check_game_state(game_state.current_turn, enemy_colour))
+
+                        status = game_state.check_game_state(game_state.current_turn, enemy_colour)
                         game_state.change_turn()
                         game_state.valid_moves = []
+
+                            
                     else:
                         print("Invalid move")
                        
@@ -91,6 +102,8 @@ def main():
         if last_piece:        
             highlight_squares(screen, valid_moves, row, col)     
         create_pieces(screen, game_state.board)
+        if status != "No Check" and status != "Check":
+            draw_text(screen, status)        
         clock.tick(MAX_FPS)
         pg.display.update()
           
@@ -121,6 +134,13 @@ def create_pieces(screen, board):
             # If not empty, creates the corresponding piece
             if piece != "--":
                 screen.blit(IMAGES[piece], pg.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+
+def draw_text(screen, txt):
+    txt = txt + " (Press R to reset the board)"
+    font = pg.font.SysFont("Arial", 24, True, False)
+    text_object = font.render(txt, 0, pg.Color('Black'))
+    text_loc = pg.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH/2 - text_object.get_width()/2, HEIGHT/2 - text_object.get_height()/2)
+    screen.blit(text_object, text_loc)
 
 if __name__ == "__main__":
     main()
